@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="LocalNetRPCEnum.vcxproj" Id="dfc966ee-1af6-4b9d-80dd-5f302a29fd87" />
+</Solution>
