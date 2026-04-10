@@ -33,8 +33,58 @@ This tool is part of the extended NetEnum project and provides deep network visi
 ### Compilation
 
 **Using Visual Studio 2022/2019:**
+cl.exe /O2 /W4 rpc_scanner.c /link ws2_32.lib iphlpapi.lib rpcrt4.lib ole32.lib advapi32.lib
 
 ```bash
 # Open the solution in Visual Studio
 # Build -> Build Solution (or Ctrl+Shift+B)
 # Output: bin/Release/RpcScanner.exe
+
+**Usage**
+Auto-detect local network and scan:
+RpcScanner.exe
+
+**Output:**
+=== RPC SERVER SCANNER WITH HEURISTIC DETECTION ===
+
+[*] Auto-detecting local network...
+[+] Detected network prefix: 192.168.1.0/24
+
+=== RPC SERVICE DISCOVERY ===
+[*] Scanning network: 192.168.1.0/24
+
+[+] FOUND: 192.168.1.10:135 - Service: EPMAP (RPC Endpoint Mapper)
+[+] FOUND: 192.168.1.10:445 - Service: SVCCTL (Service Control Manager)
+[+] FOUND: 192.168.1.11:135 - Service: EPMAP (RPC Endpoint Mapper)
+[+] FOUND: 192.168.1.20:139 - Service: SAMR (Security Account Manager)
+
+=== SCAN RESULTS ===
+[*] Total RPC servers found: 4
+[*] Servers in list: 4
+
+=== RPC SERVERS DISCOVERED ===
+[1] 192.168.1.10:135
+[2] 192.168.1.10:445
+[3] 192.168.1.11:135
+[4] 192.168.1.20:139
+
+Detected RPC   Services
+Service	Port	Description	        Security Impact
+EPMAP	  135	  RPC Endpoint Mapper	Info disclosure, enumeration
+SAMR	  139	  Security Account Manager	Account enumeration, credential attacks
+LSARPC	139	  LSA Remote Procedure Call	Policy information leakage
+WINREG	445	  Remote Registry	    System configuration access
+SVCCTL	445	  Service Control     Manager	Service enumeration, DoS
+SPOOLSVC	445	Print Spooler	      CVE-2021-1675 (PrintNightmare)
+NETLOGON	139	Network Logon	      Domain trust enumeration
+WINLOGON	445	Windows Logon	      Authentication information
+
+**Detection Algorithm**
+Network Enumeration: Iterate through all hosts in /24 subnet (1-254)
+Port Scanning: Test common RPC ports (135, 139, 445)
+RPC Probe: Send DCE/RPC BIND request to each host:port combination
+Response Analysis:
+Check for RPC protocol header (0x05 0x00)
+Search for service-specific byte signatures
+Service Identification: Match response patterns against known signatures
+Result Recording: Add discovered services to results list
